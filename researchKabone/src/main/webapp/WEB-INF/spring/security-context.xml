@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xsi:schemaLocation="http://www.springframework.org/schema/beans 
+							http://www.springframework.org/schema/beans/spring-beans.xsd 
+							http://www.springframework.org/schema/context 
+    						http://www.springframework.org/schema/context/spring-context.xsd
+							http://www.springframework.org/schema/security 
+							http://www.springframework.org/schema/security/spring-security.xsd" 
+		xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:security="http://www.springframework.org/schema/security" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns="http://www.springframework.org/schema/beans">
+
+	<context:component-scan base-package="com.kabone.research.." use-default-filters="false">
+    	<context:include-filter expression="org.springframework.stereotype.Service" type="annotation" />
+    	<context:include-filter expression="org.springframework.stereotype.Repository" type="annotation" />
+    </context:component-scan>
+    
+    <security:http pattern="/admin/common/**" security="none" />
+    <security:http pattern="/research/**" security="none" />
+    <security:http pattern="/include/**" security="none" />
+    <security:http pattern="/images/**" security="none" />
+    <security:http pattern="/css/**" security="none" />
+    <security:http pattern="/js/**" security="none" />
+    
+	<security:http auto-config="true" use-expressions="true">		
+	<security:intercept-url access="permitAll" pattern="/"/>
+		<security:intercept-url access="permitAll" pattern="/member/**"/>
+		<security:intercept-url access="permitAll" pattern="/research/**"/>
+		<security:intercept-url access="hasRole('ROLE_USER')" pattern="/*/**"/>
+		
+		<security:form-login 
+			authentication-failure-url="/member/loginFail.do" 
+			always-use-default-target="true"		
+			default-target-url="/member/main.do"
+			login-page="/member/login.do"/>
+		<security:logout logout-success-url="/member/logout.do" invalidate-session="true" delete-cookies="JSESSIONID"/>
+		<!-- <security:logout logout-success-url="/member/login.do" invalidate-session="true" delete-cookies="JSESSIONID"/> -->
+		
+		<!-- 동일 ID로 session을 하나만 처리할 경우에 사용 -->
+		<!-- <security:session-management invalid-session-url="/" session-authentication-error-url="/">
+        	<security:concurrency-control max-sessions="1" error-if-maximum-exceeded="true" expired-url="/"/>
+    	</security:session-management> -->
+		
+		<security:access-denied-handler error-page="/accessDenied.do"/>
+	</security:http>
+	
+	<security:authentication-manager>
+		<security:authentication-provider user-service-ref="memberService">
+			<!-- <security:password-encoder ref="bcryptPasswordEncoder" /> --><!-- bcrypt -->
+			<security:password-encoder hash="md5" />
+		</security:authentication-provider>
+	</security:authentication-manager>
+	<bean class="com.kabone.research.member.service.MemberService" id="memberService"/> 
+	<!-- <bean class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" id="bcryptPasswordEncoder"/> --><!-- bcrypt -->
+</beans>

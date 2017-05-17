@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<decorators defaultdir="/WEB-INF/views">
+    <excludes>
+        <pattern>/index.jsp</pattern>
+        <pattern>/index</pattern>
+        <pattern>/index?failure=1</pattern>
+        <pattern>/RM/RM/RM0101</pattern>
+    </excludes>
+    <decorator name="layout" page="_global/layout.jsp">
+        <pattern>/member/main*</pattern>
+        
+        <pattern>/RM/*</pattern>
+        <pattern>/CM/*</pattern>
+        <pattern>/GM/*</pattern>
+        <pattern>/AM/*</pattern>
+        <pattern>/SM/*</pattern>
+        <pattern>/DM/*</pattern>
+        <pattern>/MM/*</pattern>
+        <pattern>/TM/*</pattern>
+    </decorator>
+    
+	
+    <decorator name="popup" page="_global/popup.jsp">
+        <pattern>/popup/*</pattern>
+    </decorator>
+    <decorator name="header" page="_global/header.jsp" />
+    <decorator name="topmenu" page="_global/top_menu.jsp" />
+    <decorator name="leftmenu" page="_global/left_menu.jsp" />
+    <!-- 
+    <decorator name="top" page="_global/top.jsp" />
+    <decorator name="footer" page="_global/footer.jsp" />
+    <decorator name="include" page="_global/include.jsp" />
+     -->
+</decorators>

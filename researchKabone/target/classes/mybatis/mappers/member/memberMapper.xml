@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kabone.research.member.dao.MemberMapper">
+      
+    <!-- CMS 로그인 -->
+	<select id="getUserPwd" parameterType="java.lang.String" resultType="AdminVO">
+		<![CDATA[
+		SELECT
+			USER_ID 		as adminId
+			, PWD			as adminPw
+			, USER_NM		as adminNm
+			, EMAIL			as email
+			, USER_NM		as userNm
+			, USER_TY		as useFlg
+		FROM
+			USER_INFO 
+		WHERE
+			USER_ID = #{userId}
+		  ]]>
+	</select>
+	<select id="getAdminUrlInfo" parameterType="AdminVO" resultType="AdminURLVO">
+    	SELECT
+			user_level as userLevel
+			, menu_id as menuId
+			, menu_url as menuUrl
+    	FROM
+    		TN_MENU_AUTH
+    	WHERE
+    		user_level = #{adminLevel}
+    </select>
+	
+	
+	
+	
+	
+	
+	
+	 <!-- CMS 회원관리 -->
+	<select id="selectUserList" parameterType="UserInfoVO" resultType="UserInfoVO">
+    	SELECT 
+    		U.USER_ID as userId
+			,U.USER_TY as userTy
+			,U.MOB_NO as mobNo
+			,U.EMAIL as email
+			,DATE_FORMAT(U.REG_DTM, '%Y-%m-%d %H:%i:%s') as regDtm
+			,DATE_FORMAT(U.MOD_DTM, '%Y-%m-%d %H:%i:%s') as modDtm
+			,U.USER_NM as userNm
+		FROM
+			USER_INFO U
+		WHERE
+			1 = 1
+			AND U.USER_TY = 'ADMIN'
+		ORDER BY U.REG_DTM DESC
+		<if test="isExcel != true">
+			LIMIT #{currentPage} , #{recordsPerPage}
+		</if>
+	</select>
+	
+	<select id="selectCountUserList" parameterType="UserInfoVO" resultType="java.lang.Integer">
+    	SELECT 	
+   			count(U.USER_ID)
+		FROM
+			USER_INFO U
+		WHERE
+			1 = 1
+			AND U.USER_TY = 'ADMIN'
+		ORDER BY U.REG_DTM DESC
+	</select>
+	
+	
+	<select id="selectUser" parameterType="UserInfoVO" resultType="UserInfoVO">
+    	SELECT 
+    		U.USER_ID as userId
+			,U.USER_TY as userTy
+			,U.MOB_NO as mobNo
+			,U.EMAIL as email
+			,DATE_FORMAT(U.REG_DTM, '%Y-%m-%d %H:%i:%s') as regDtm
+			,DATE_FORMAT(U.MOD_DTM, '%Y-%m-%d %H:%i:%s') as modDtm
+			,U.USER_NM as userNm
+		FROM
+			USER_INFO U 
+		WHERE
+			U.USER_ID = #{userId}
+	</select>
+	
+	<select id="selectAuthEmailForUser" parameterType="UserInfoVO" resultType="UserCertVO">
+    	SELECT 
+    		SEQ_NO as seqNo
+    		, CREATE_DT as createDt
+    		, MOD_DT as modDt
+    		, USER_NO as userNo
+    		, AUTH_SNS_TYPE as authSnsType
+    		, AUTH_SNS_ID as authSnsId
+    		, AUTH_SNS_TOCKEN as authSnsTocken
+    		, AUTH_EMAIL as authEmail
+    		, CERT_LEVEL as certLevel
+    		, CERT_PAY as certPay
+    		, CERT_GAME_CNT as certGameCnt
+    		, CERT_PAY_YN as certPayYn
+    		, CERT_GAME_CNT_YN as certGameCntYn
+		FROM
+			tn_user_cert 
+		WHERE
+			USER_NO = #{userNo}
+			and AUTH_SNS_TYPE = 'g'
+		order by MOD_DT desc
+	</select>
+	
+    
+    <update id="updateUser" parameterType="UserInfoVO">
+		UPDATE	tn_user
+		SET	
+			USER_LEVEL =  #{userLevel}
+			,USER_TYPE =  #{userType}
+			,PROFILE_IMG =  #{profileImg}
+			,NICK =  #{nick}
+			,MOD_DT =  now()			 
+    	WHERE
+			USER_NO = #{userNo}
+	</update>
+	<update id="updateUser2" parameterType="UserInfoVO">
+		UPDATE	tn_user
+		SET	
+			USER_LEVEL =  #{userLevel}
+			,MOD_DT =  now()			 
+    	WHERE
+			USER_NO = #{userNo}
+	</update>
+		
+	<update id="updateUserCert" parameterType="UserCertVO">
+		UPDATE	tn_user_cert
+		SET	
+			CERT_LEVEL =  #{certLevel}
+			,CERT_PAY_YN =  #{certPayYn}
+			,CERT_GAME_CNT_YN =  #{certGameCntYn}
+			,MOD_DT =  now()			 
+    	WHERE
+			USER_NO = #{userNo}
+			and AUTH_SNS_TYPE = #{authSnsType}
+			and AUTH_EMAIL = #{authEmail}
+		ORDER BY 
+			SEQ_NO DESC limit 1	
+	</update>
+	
+	<!-- 메모 등록/업데이트 -->
+	<insert id="updateUserExt" parameterType="UserInfoVO">
+		<![CDATA[
+		insert into tn_user_ext
+		(
+			USER_NO
+			, MEMO
+		)
+		VALUES 
+		(
+			#{userNo}
+			, #{memo}
+		)
+		ON DUPLICATE KEY UPDATE 
+			MEMO=#{memo}
+		]]>	
+	</insert>
+    
+    <!-- 본인인증 초기화 -->
+    <update id="updateUserInitIdConfirm" parameterType="UserInfoVO">
+		UPDATE	tn_user
+		SET	
+			AGREE4 = 'N'
+			,ID_CONFIRM = 'N'
+			,ID_CONFIRM_DT = null
+			,CI = null			 
+    	WHERE
+			USER_NO = #{userNo}
+	</update>
+    
+    
+    
+    <!-- 인증메일 중복확인 -->
+    <select id="selectCountAuthEmail" parameterType="UserInfoVO" resultType="java.lang.Integer">
+		<![CDATA[
+		select 
+			count(1)			
+		from 
+			tn_user_cert
+		WHERE
+			AUTH_SNS_TYPE = 'g'
+			and AUTH_EMAIL = #{authEmail}
+		]]>
+	</select>
+	
+	<insert id="insertUserCert"  parameterType="UserCertVO">
+	<![CDATA[
+		INSERT INTO tn_user_cert
+		(
+			USER_NO
+			,AUTH_SNS_TYPE
+			,AUTH_EMAIL
+			,CERT_LEVEL
+			,CERT_PAY_YN
+			,CERT_GAME_CNT_YN
+			,CERT_PAY
+			,CERT_GAME_CNT
+			,MOD_DT
+		)
+		values
+		(
+			#{userNo}
+			,#{authSnsType}
+			,#{authEmail}
+			,#{certLevel}
+			,#{certPayYn}
+			,#{certGameCntYn}
+			,#{certPay}
+			,#{certGameCnt}
+			,now()
+		)
+	]]>
+	</insert>
+    
+    
+    
+    
+    
+    
+</mapper>

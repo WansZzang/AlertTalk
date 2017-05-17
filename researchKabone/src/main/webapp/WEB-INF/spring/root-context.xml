@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+						http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+						http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+						
+
+	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+	        <property name="basename" value="WEB-INF/classes/message/message"/>
+	        <property name="defaultEncoding" value="UTF-8" />
+	        <property name="cacheSeconds" value="180"/>
+	</bean>	
+	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver" />
+	
+	<!-- excel -->
+	<!-- <bean id="excelView" class="com.kabone.research.common.excel.CustomExcelView">
+		<property name="contentType" value="application/vnd.ms-excel; charset=UTF-8"></property>
+	</bean> -->
+  	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+    <import resource="classpath:config/spring/context/context-datasource.xml"/>
+    <import resource="classpath:config/spring/context/context-mybatis.xml" />
+    <import resource="classpath:config/spring/context/mybatis-config-base.xml" />		
+    
+    <!-- <util:properties id="system" location="/WEB-INF/spring/properties/systeminfo.properties" /> -->
+    <util:properties id="system" location="classpath:config/systeminfo.properties" />
+    
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+       <property name="dataSource" ref="dataSource"/>
+	</bean>
+	     
+	<aop:config proxy-target-class="true">
+	    <aop:pointcut id="serviceOperation" expression="execution(public * com.kabone.research..service.*Service.*(..))" />
+	    <aop:advisor id="transactionAdvisor" pointcut-ref="serviceOperation" advice-ref="txAdvice"/>
+	</aop:config>
+	         
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+	    <tx:attributes>
+	        <tx:method name="set*" rollback-for="Exception"/>
+	        <tx:method name="insert*" rollback-for="Exception"/>
+	        <tx:method name="update*" rollback-for="Exception"/>
+	        <tx:method name="delete*" rollback-for="Exception"/>
+	    </tx:attributes>
+	</tx:advice>
+    
+    
+</beans>

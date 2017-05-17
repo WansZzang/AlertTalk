@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kabone.research.research.dao.ResearchMapper">
+	<!-- 진행중인 설문 리스트 -->
+	<select id="getPollMasterList" resultType="PollMasterVO">
+		<![CDATA[
+		SELECT
+			*
+		FROM
+			POLL_MASTER 
+		WHERE
+			POLL_START_DT < NOW()
+		AND 
+			NOW() < POLL_END_DT 
+		  ]]>
+	</select>
+	
+	<select id="getPollOptionList" resultType="PollOptionVO" parameterType="PollDetailVO">
+	<![CDATA[
+		SELECT
+			*
+		FROM
+			POLL_OPTIONS
+		WHERE
+			POLL_DETAIL_SEQ = #{pollDetailSeq}
+		ORDER BY OPTION_SEQ ASC
+		]]>
+	</select>
+
+      
+    <!-- 설문지 검색 -->
+	<select id="getPollMaster" parameterType="java.lang.String" resultType="PollMasterVO">
+		<![CDATA[
+		SELECT
+			*
+		FROM
+			POLL_MASTER 
+		WHERE
+			POLL_URL_PARAM = #{pollUrlParam}
+		]]>
+	</select>
+	
+	<!-- 트리구조로 조회 -->
+	<select id="getPollDetailList" resultType="PollDetailVO" parameterType="PollMasterVO">
+	<![CDATA[
+	SELECT
+		Q.*
+	FROM
+	(
+		SELECT 
+		 	PD.EVLN_ID
+	    	, PD.POLL_SEQ
+			, PD.POLL_DESC AS POLL_DESC
+			, PD.POLL_DETAIL_SEQ as POLL_DETAIL_SEQ
+			, PD.POLL_PARENT as POLL_PARENT
+			, PD.POLL_FLAG as POLL_FLAG
+			, PD.POLL_TYPE as POLL_TYPE
+			, func.level as LEVEL
+			, func.level as LV
+			, (SELECT COUNT(1) FROM POLL_DETAIL IPD WHERE IPD.POLL_PARENT = PD.POLL_DETAIL_SEQ AND IPD.EVLN_ID = PD.EVLN_ID) AS HAS_CHILD
+			, func.rnum
+			, PD.POLL_DEPTH as POLL_DEPTH
+		FROM
+		(
+			SELECT 
+				poll_tree(#{evlnId},#{pollSeq}) AS id
+				, @level as level
+				, @rnum		:= @rnum + 1 AS rnum
+			FROM (
+					SELECT 
+					@start_with := 0,
+					@id := @start_with,
+					@level := 0
+				) vars
+				, POLL_DETAIL, (SELECT @rnum:=0) TMP
+			WHERE @id IS NOT NULL
+		) func
+		Join POLL_DETAIL PD
+		ON func.id = PD.POLL_DETAIL_SEQ
+	) Q
+	ORDER BY Q.rnum
+	]]>
+	</select>
+	<insert id="insertPollDetailResult" parameterType="PollDetailResultVO">
+	INSERT INTO POLL_RESULT
+	(
+		USER_IP
+		, POLL_DETAIL_SEQ
+		, POLL_DETAIL_RESULT
+		, POLL_TYPE
+		, REG_DT
+	)
+	VALUES
+	(
+		#{userIp}
+		, #{pollDetailSeq}
+		, #{pollDetailResult}
+		, (SELECT POLL_TYPE FROM POLL_DETAIL WHERE POLL_DETAIL_SEQ = #{pollDetailSeq})
+		, NOW()
+	)
+	</insert>
+	
+	<!-- 트리구조로 조회 -->
+	<select id="getPollResultList" resultType="PollDetailVO" parameterType="PollMasterVO">
+	<![CDATA[
+	SELECT
+		Q.*
+	FROM
+	(
+		SELECT 
+		 	PD.EVLN_ID
+	    	, PD.POLL_SEQ
+			, PD.POLL_DESC AS POLL_DESC
+			, PD.POLL_DETAIL_SEQ as POLL_DETAIL_SEQ
+			, PD.POLL_PARENT as POLL_PARENT
+			, PD.POLL_FLAG as POLL_FLAG
+			, PD.POLL_TYPE as POLL_TYPE
+			, func.level as LEVEL
+			, func.level as LV
+			, convert((
+        SELECT 
+        CASE
+            WHEN PD2.POLL_TYPE = '1'
+            THEN NULL
+            WHEN PD2.POLL_TYPE IN ('2','3') -- 코드 마스터의 문항 항목 읽어서 넣음
+            THEN 
+              CONCAT(
+                (SELECT COUNT(IF(IPR.POLL_DETAIL_RESULT != '1',null,IPR.POLL_DETAIL_RESULT )) FROM POLL_RESULT IPR WHERE IPR.POLL_DETAIL_SEQ = PD2.POLL_DETAIL_SEQ)
+                ,"|"
+                ,(SELECT COUNT(IF(IPR.POLL_DETAIL_RESULT != '2',null,IPR.POLL_DETAIL_RESULT )) FROM POLL_RESULT IPR WHERE IPR.POLL_DETAIL_SEQ = PD2.POLL_DETAIL_SEQ)
+                ,"|"
+                ,(SELECT COUNT(IF(IPR.POLL_DETAIL_RESULT != '3',null,IPR.POLL_DETAIL_RESULT )) FROM POLL_RESULT IPR WHERE IPR.POLL_DETAIL_SEQ = PD2.POLL_DETAIL_SEQ)
+                ,"|"
+                ,(SELECT COUNT(IF(IPR.POLL_DETAIL_RESULT != '4',null,IPR.POLL_DETAIL_RESULT )) FROM POLL_RESULT IPR WHERE IPR.POLL_DETAIL_SEQ = PD2.POLL_DETAIL_SEQ)
+                ,"|"
+                ,(SELECT COUNT(IF(IPR.POLL_DETAIL_RESULT != '5',null,IPR.POLL_DETAIL_RESULT )) FROM POLL_RESULT IPR WHERE IPR.POLL_DETAIL_SEQ = PD2.POLL_DETAIL_SEQ)
+              )
+            WHEN PD2.POLL_TYPE = '4' -- 주관식 데이터 읽어서 붙힘
+            THEN (SELECT group_concat(IF(IPR.POLL_TYPE != '4',NULL,IPR.POLL_DETAIL_RESULT ) SEPARATOR '|') FROM POLL_RESULT IPR WHERE IPR.POLL_DETAIL_SEQ = PD2.POLL_DETAIL_SEQ GROUP BY IPR.POLL_DETAIL_SEQ)
+            WHEN PD2.POLL_TYPE = '5' -- 옵션의 값들 읽어와서 결과 값과 합침.
+            THEN 
+              CONCAT(
+                (SELECT COUNT(IF(IPR.POLL_DETAIL_RESULT != '1',null,IPR.POLL_DETAIL_RESULT )) FROM POLL_RESULT IPR WHERE IPR.POLL_DETAIL_SEQ = PD2.POLL_DETAIL_SEQ)
+                ,"|"
+                ,(SELECT COUNT(IF(IPR.POLL_DETAIL_RESULT != '2',null,IPR.POLL_DETAIL_RESULT )) FROM POLL_RESULT IPR WHERE IPR.POLL_DETAIL_SEQ = PD2.POLL_DETAIL_SEQ)
+                ,"|"
+                ,(SELECT COUNT(IF(IPR.POLL_DETAIL_RESULT != '3',null,IPR.POLL_DETAIL_RESULT )) FROM POLL_RESULT IPR WHERE IPR.POLL_DETAIL_SEQ = PD2.POLL_DETAIL_SEQ)
+                ,"|"
+                ,(SELECT COUNT(IF(IPR.POLL_DETAIL_RESULT != '4',null,IPR.POLL_DETAIL_RESULT )) FROM POLL_RESULT IPR WHERE IPR.POLL_DETAIL_SEQ = PD2.POLL_DETAIL_SEQ)
+                ,"|"
+                ,(SELECT COUNT(IF(IPR.POLL_DETAIL_RESULT != '5',null,IPR.POLL_DETAIL_RESULT )) FROM POLL_RESULT IPR WHERE IPR.POLL_DETAIL_SEQ = PD2.POLL_DETAIL_SEQ)
+              )
+            ELSE NULL
+          END as POLL_RESULTS
+        FROM POLL_DETAIL PD2 WHERE PD.POLL_DETAIL_SEQ =PD2.POLL_DETAIL_SEQ ) using utf8)  as POLL_RESULT
+      , func.rnum
+			, PD.POLL_DEPTH as POLL_DEPTH
+		FROM
+		(
+			SELECT 
+				poll_tree(#{evlnId},#{pollSeq}) AS id
+				, @level as level
+				, @rnum		:= @rnum + 1 AS rnum
+			FROM (
+					SELECT 
+					@start_with := 0,
+					@id := @start_with,
+					@level := 0
+				) vars
+				, POLL_DETAIL, (SELECT @rnum:=0) TMP
+			WHERE @id IS NOT NULL
+		) func
+		Join POLL_DETAIL PD
+		ON func.id = PD.POLL_DETAIL_SEQ
+	) Q
+	ORDER BY Q.rnum
+	]]>
+	</select>
+</mapper>

@@ -1,0 +1,117 @@
+@charset "utf-8";
+/* *********************************************
+* Project ===== base
+* FileName === base.css
+* Date ======= 2015-04-07
+* Last ======= 2015-04-07
+********************************************* */
+
+
+/* --------------------------------------------
+ * default
+/* ------------------------------------------ */
+html,body{height:100%;-webkit-text-size-adjust:none;-webkit-appearance:none;}
+body {font-family:"맑은 고딕", Malgun Gothic, 'Apple Gothic', Tahoma, Verdana, sans-serif; color:#666;font-size:12px;}
+html,body,div,span,object,iframe,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,
+sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,
+figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video,h1,h2,h3,h4,h5,h6,
+header,footer,section,article,aside,nav,hgroup,details,figure,figcaption {margin:0;padding:0;list-style:none;line-height:15px;}
+h1,h2,h3,h4,h5,h6 {line-height:100%;}
+
+
+/* --------------------------------------------
+* html5 block
+/* ------------------------------------------ */
+header,footer,section,article,aside,nav,hgroup,details,figure,figcaption {display:block;}
+
+
+/* --------------------------------------------
+ * link
+/* ------------------------------------------ */
+a			{color:#666;text-decoration:none;}
+a:visited	{text-decoration:none;}
+a:hover	{text-decoration:none;}
+a:active	{text-decoration:none;}
+a:focus	{}
+a.link{color:#0027ec;text-decoration:underline;}
+a.link:visited	{text-decoration:underline;}
+a.link:hover	{text-decoration:underline;}
+a.link:active	{text-decoration:underline;}
+
+
+/* --------------------------------------------
+ * etc
+/* ------------------------------------------ */
+address,em,dfn	{font-style:normal;}
+strong				{font-weight:bold;}
+hr						{display:none;}
+img					{border:0;vertical-align:middle;}
+mark					{background:none;}
+
+
+/* --------------------------------------------
+ * table
+/* ------------------------------------------ */
+table {width: 100%;border-spacing:0;table-layout:fixed;border-collapse:collapse;empty-cells:show;}/*border-collapse:separate;*/
+tbody, tfoot, thead, tr, th, td {word-break:break-all;}
+caption {visibility:hidden;width:0;height:0;font-size:0;line-height:0;position:static;left:0;top:-999999px;}
+
+
+/* --------------------------------------------
+ * fieldset
+/* ------------------------------------------ */
+fieldset	{border:none;}
+legend	{visibility:hidden;width:0;height:0;font-size:0;line-height:0;position:absolute;left:0;top:-999999px;}
+
+
+/* --------------------------------------------
+ * form
+/* ------------------------------------------ */
+button,
+input[type=button],
+input[type=submit],
+input[type=reset] {cursor:pointer;width:auto;overflow:visible;vertical-align:middle;background:none;margin:0;padding:0;}
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+input[type="url"],
+input[type="tel"] {font-family:"맑은 고딕", Malgun Gothic, 'Apple Gothic', Tahoma, Verdana, sans-serif;border:1px solid #666;padding:0 10px;height:30px;line-height:30px;width:100%;font-size:12px;border-radius:0;background:#fff;
+	-webkit-appearance: none;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+input[type="date"], 
+input[type="datetime"] {font-family:"맑은 고딕", Malgun Gothic, 'Apple Gothic', Tahoma, Verdana, sans-serif;border:1px solid #666;padding:0 10px;height:30px;line-height:30px;width:400px;font-size:12px;border-radius:0;background:#fff;
+	-webkit-appearance: none;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+/* --------------------------------------------
+/* input - placeholder
+/* ------------------------------------------ */
+::-webkit-input-placeholder{color:#b0b3b6;}
+::-moz-placeholder{color:#b0b3b6;}
+:-ms-input-placeholder{color:#b0b3b6;}
+input:-moz-placeholder{color:#b0b3b6;}
+.placeholder{color:#b0b3b6;}
+
+[placeholder]:focus::-webkit-input-placeholder{color: transparent;}
+[placeholder]:focus::-moz-placeholder{color: transparent;}
+[placeholder]:focus:-moz-placeholder{color: transparent;}
+[placeholder]:focus:-ms-input-placeholder {color: transparent;}
+
+input[type="radio"],
+input[type="checkbox"] {
+	width:13px;
+	height:13px;
+	padding:0;
+}
+button::-moz-focus-inner {padding:0;border:0;cursor:pointer;}
+select	{border:1px solid #666 !important;padding:4px;font-family:"맑은 고딕", Malgun Gothic, 'Apple Gothic', Tahoma, Verdana, sans-serif;}
+textarea	{resize:none;width:100%;min-height:100px;padding:10px;border:1px solid #333;display:block;box-sizing:border-box;font-family:"맑은 고딕", Malgun Gothic, 'Apple Gothic', Tahoma, Verdana, sans-serif;}
+input,button,select {vertical-align:middle;border:0;font-family:"맑은 고딕", Malgun Gothic, 'Apple Gothic', Tahoma, Verdana, sans-serif;}
+label {cursor:pointer;}
+button > span{position:relative;top:-1px;}
